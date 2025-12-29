@@ -95,5 +95,5 @@ streamlit run app.py
 ### 👤 Author
 
 Siva Kishore Pasupuleti
-AI / GenAI Enthusiast | Automation Builder | Data Science Practitioner
+
 📫 Feel free to connect and explore the projects!
