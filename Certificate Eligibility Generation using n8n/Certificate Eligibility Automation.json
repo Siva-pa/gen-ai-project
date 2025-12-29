@@ -1,0 +1,478 @@
+{
+  "name": "Certificate Eligibility Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Student Details",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Track",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Data Analytics"
+                  },
+                  {
+                    "option": "Data Science"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Batch Number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -608,
+        0
+      ],
+      "id": "62a9f471-1ba0-48f4-abbd-81704a1562b6",
+      "name": "On form submission",
+      "webhookId": "fe80ddd1-e0ae-45c5-9d17-50ebbabb0303"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5bcb1799-c774-4f82-be41-2a25dadb4e2c",
+              "leftValue": "={{ $json.Track }}",
+              "rightValue": "Data Analytics",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -448,
+        0
+      ],
+      "id": "926f2402-7abd-43d8-8129-232be990484e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Python",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "EDA",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "SQL",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Power BI",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Advanced Statistics",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        -320,
+        -160
+      ],
+      "id": "035debd5-f552-4d4a-aeee-028e4e07f0f2",
+      "name": "Data Analytics ",
+      "webhookId": "25c70c3b-be20-4d5b-98be-63fc6c30627f"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "ML",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "ANN",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "CNN",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "NLP",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "GenAI",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        144
+      ],
+      "id": "b729e3cd-27ad-4fc6-a96a-fe6da25246f2",
+      "name": "Data Science",
+      "webhookId": "25c70c3b-be20-4d5b-98be-63fc6c30627f"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!items || items.length === 0) {\n  throw new Error(\"❌ No DA data received\");\n}\n\nconst result = [];\n\nfor (const item of items) {\n  const data = item.json;\n\n  const marks = [\n    Number(data.Python),\n    Number(data.EDA),\n    Number(data.SQL),\n    Number(data[\"Power BI\"]),\n    Number(data[\"Advanced Statistics\"])\n  ];\n\n  const average =\n    marks.reduce((sum, m) => sum + m, 0) / marks.length;\n\n  data.track = \"DA\";\n  data.average = Number(average.toFixed(2));\n  data.eligible = average >= 70;\n\n  result.push({ json: data });\n}\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -160
+      ],
+      "id": "38a88a80-7f4c-47a2-94a7-d3f6e62185f5",
+      "name": "DA Average Calculator"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!items || items.length === 0) {\n  throw new Error(\"❌ No DS data received\");\n}\n\nconst result = [];\n\nfor (const item of items) {\n  const data = item.json;\n\n  const marks = [\n    Number(data.ML),\n    Number(data.ANN),\n    Number(data.CNN),\n    Number(data.NLP),\n    Number(data.GenAI)\n  ];\n\n  const average =\n    marks.reduce((sum, m) => sum + m, 0) / marks.length;\n\n  data.track = \"DS\";\n  data.average = Number(average.toFixed(2));\n  data.eligible = average >= 70;\n\n  result.push({ json: data });\n}\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        144
+      ],
+      "id": "ae0adda0-e3d0-44e3-a407-168aa0ea5239",
+      "name": "DS Average Calculator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0fc911ea-d3ba-41ad-8e50-fa33f37dd7bf",
+              "leftValue": "={{ $json.average }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        96,
+        -160
+      ],
+      "id": "7db8624e-0570-461c-a6ee-40a0c2f0aebc",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0fc911ea-d3ba-41ad-8e50-fa33f37dd7bf",
+              "leftValue": "={{ $json.average }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        144
+      ],
+      "id": "16cb739f-36bf-49be-ae52-ace7a6f4932a",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "🎓 Certificate Eligibility – Approved",
+        "message": "=Hi {{ $('If').item.json.Name }},\n\n🎉 Congratulations!\n\nYou are eligible for the certificate.\n\nTrack: {{ $('If').item.json.Track }}\nAverage Score: {{$json.average}}\n\nYour certificate will be issued shortly.\n\nRegards,\nTraining Team\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        -256
+      ],
+      "id": "41dce868-ff95-4192-a76f-a40fc26295c8",
+      "name": "Send a message",
+      "webhookId": "17c3c43b-58e5-47e5-910d-79bd7202503e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "🎓 Certificate Eligibility – Approved",
+        "message": "=Hi {{ $('If').item.json.Name }},\n\n🎉 Congratulations!\n\nYou are eligible for the certificate.\n\nTrack: {{ $('If').item.json.Track }}\nAverage Score: {{$json.average}}\n\nYour certificate will be issued shortly.\n\nRegards,\nTraining Team\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        128
+      ],
+      "id": "3764ac55-ab95-4e8f-a33a-e9304014bd26",
+      "name": "Send a message1",
+      "webhookId": "17c3c43b-58e5-47e5-910d-79bd7202503e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "🎓 Certificate Eligibility - Improvement Needed",
+        "message": "=Hi {{ $('On form submission').item.json.Name }},\n\nThank you for your assessment submission.\n\nYour average score: {{$json.average}}\n\nUnfortunately, you are not eligible this time.\nPlease improve weak modules and reattempt next month.\n\nWe believe in you 💪\n\nRegards,\nTraining Team\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        -144
+      ],
+      "id": "49088749-5166-4adc-abdd-139d287bc9fe",
+      "name": "Send a message2",
+      "webhookId": "587ddc6a-4412-455b-b151-fbfb3e06d910",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "🎓 Certificate Eligibility - Improvement Needed",
+        "message": "=Hi {{ $('On form submission').item.json.Name }},\n\nThank you for your assessment submission.\n\nYour average score: {{$json.average}}\n\nUnfortunately, you are not eligible this time.\nPlease improve weak modules and reattempt next month.\n\nWe believe in you 💪\n\nRegards,\nTraining Team\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        256
+      ],
+      "id": "ec497f06-a8a4-464b-b588-51e27af52b20",
+      "name": "Send a message3",
+      "webhookId": "587ddc6a-4412-455b-b151-fbfb3e06d910",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Data Analytics ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Data Science",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Analytics ": {
+      "main": [
+        [
+          {
+            "node": "DA Average Calculator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Science": {
+      "main": [
+        [
+          {
+            "node": "DS Average Calculator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DA Average Calculator": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DS Average Calculator": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dac9c18f-0317-4277-8653-3ba274889eec",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2387b43c76b75d1affd8da6cf759ac06bd1826edb1524b833e17ef9beeff984c"
+  },
+  "id": "bUr81wvayGL7Xtkh",
+  "tags": []
+}

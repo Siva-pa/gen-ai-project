@@ -1,0 +1,475 @@
+{
+  "name": "Monthly Assessment Eligibility Checker",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Student Info",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Student Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Student Type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Data Analytics"
+                  },
+                  {
+                    "option": "Data Science"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -992,
+        -64
+      ],
+      "id": "74503da1-f26a-4086-8ac4-e6c7c724c7da",
+      "name": "On form submission",
+      "webhookId": "258a665e-a977-421c-9446-bed8fff98d39"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5a7b56ca-72e5-4806-9cf7-d8064e32e973",
+              "leftValue": "={{ $json['Student Type'] }}",
+              "rightValue": "Data Analytics",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -800,
+        -64
+      ],
+      "id": "01d3b65f-edec-47d3-8b49-2ce8d2e8dac3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Python",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "EDA",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "SQL",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Power BI",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Advanced Statistics",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        -576,
+        -240
+      ],
+      "id": "3e55ea2f-8426-4f91-b3df-1e220d5f476b",
+      "name": "Data Analytics Form",
+      "webhookId": "55dc30bc-99a5-4d77-84c2-4f4daf9004e2"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "ML",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "ANN",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "CNN",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "NLP",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "GenAI",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        -672,
+        144
+      ],
+      "id": "71af3d62-b7bc-4d60-b098-b6d866547955",
+      "name": "Data Science Form",
+      "webhookId": "6a14fc27-e315-4005-acfb-0154ea899082"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input data from previous node\nconst item = $input.first().json;\n\n// Collect marks\nconst marks = [\n  Number(item.Python) || 0,\n  Number(item.EDA) || 0,\n  Number(item.SQL) || 0,\n  Number(item[\"Power BI\"]) || 0,\n  Number(item[\"Advanced Statistics\"]) || 0,\n];\n\n// Calculate average\nconst average =\n  marks.reduce((sum, value) => sum + value, 0) / marks.length;\n\n// Return output in n8n format\nreturn [\n  {\n    json: {\n      name: item[\"Student Name\"],\n      email: item.Email,\n      track: \"DA\",\n      average: Number(average.toFixed(2)),\n      eligible: average > 70,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -240
+      ],
+      "id": "d4163fc4-a3eb-415f-9846-61494b1e3bfd",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read input items from previous node\nconst items = $input.all();\n\n// Safety check (JS equivalent of your Python globals check)\nif (!items || items.length === 0) {\n  throw new Error(\"❌ No input received. Connect a Form Trigger to this node.\");\n}\n\nconst result = [];\n\nfor (const item of items) {\n  const data = { ...item.json };\n\n  const marks = [\n    Number(data.ML) || 0,\n    Number(data.ANN) || 0,\n    Number(data.CNN) || 0,\n    Number(data.NLP) || 0,\n    Number(data.GenAI) || 0,\n  ];\n\n  const average =\n    marks.reduce((sum, val) => sum + val, 0) / marks.length;\n\n  data.track = \"DS\";\n  data.average = Number(average.toFixed(2));\n  data.eligible = average > 70;\n\n  result.push({ json: data });\n}\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        144
+      ],
+      "id": "8e8b3578-7092-4d63-aa53-3838c2bf81a7",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "81994890-5f70-4389-887d-828ec376194d",
+              "leftValue": "={{ $json.eligible }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -96,
+        -240
+      ],
+      "id": "ebd9c99b-d21e-41ca-bd98-d6525bae6b06",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "Placement Eligibility – Congratulations 🎉",
+        "message": "=Hi {{ $('On form submission').item.json['Student Name'] }},\n\nYour average score is {{$json.average}}.\nYou are ELIGIBLE for placements 🚀\n\nKeep growing!\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        -256
+      ],
+      "id": "51279348-0020-4c7c-9e2e-13d7c4ea0a4a",
+      "name": "Send a message",
+      "webhookId": "baaeb820-2590-4ecb-8fce-3e683072dd16",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "Placement Eligibility – Improvement Needed",
+        "message": "=Hi {{ $('If').item.json['Student Name'] }},\n\nYour average score is {{$json.average}}.\nYou are NOT eligible yet.\n\nPlease focus on improving core modules 💪\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        -96
+      ],
+      "id": "7de7bfb4-fe05-4763-b9ab-1262453d9462",
+      "name": "Send a message1",
+      "webhookId": "baaeb820-2590-4ecb-8fce-3e683072dd16",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "81994890-5f70-4389-887d-828ec376194d",
+              "leftValue": "={{ $json.eligible }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        144
+      ],
+      "id": "fd94e1ce-5587-4dbd-8b0f-e81abd5bb6f4",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "Placement Eligibility – DS Track 🎯",
+        "message": "=Hi {{ $('On form submission').item.json['Student Name'] }},\n\nYour DS average score is {{$json.average}}.\nYou are ELIGIBLE for placements 🎉\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        32
+      ],
+      "id": "c8d2c0ff-ffe4-4be8-9a40-c58a5b2f48cc",
+      "name": "Send a message2",
+      "webhookId": "baaeb820-2590-4ecb-8fce-3e683072dd16",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "Placement Eligibility – Improvement Needed",
+        "message": "=Hi {{ $('On form submission').item.json['Student Name'] }},\n\nYour average score is {{$json.average}}.\nYou are NOT eligible.\n\nFocus on ML, DL & GenAI fundamentals 👍\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        192
+      ],
+      "id": "175ebce9-5c61-4ed1-958c-0457b8f0a9ff",
+      "name": "Send a message3",
+      "webhookId": "baaeb820-2590-4ecb-8fce-3e683072dd16",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Data Analytics Form",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Data Science Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Analytics Form": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Science Form": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7dd5093-1540-43f5-bf0d-c98fbefebe32",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2387b43c76b75d1affd8da6cf759ac06bd1826edb1524b833e17ef9beeff984c"
+  },
+  "id": "zKAwWCLiFUW0lgrP",
+  "tags": []
+}

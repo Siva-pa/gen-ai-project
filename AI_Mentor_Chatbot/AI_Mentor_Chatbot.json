@@ -1,0 +1,163 @@
+{
+  "name": "AI_Mentor_Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        16,
+        -16
+      ],
+      "id": "74d5194b-912e-49ce-aaf8-6e9330dd79f7",
+      "name": "Telegram Trigger",
+      "webhookId": "a436eae0-6265-4243-a84f-162e8c89a0c0",
+      "credentials": {
+        "telegramApi": {
+          "id": "EwAjMVvG1Hu6CANt",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=based on the below text please response politely\n\ntext :- {{ $node[\"Telegram Trigger\"].json.message.text }}\n\n\nthe response should be inside 50 tokens",
+        "options": {
+          "systemMessage": "You are a helpfull You are an AI Mentor chatbot.\n\nIMPORTANT:\n- Respond ONLY in plain text\n- Do NOT use markdown symbols like **, *, _, `, or lists with bullets\n- Do NOT use HTML tags\n\nIf the user sends \"/start\" or \"hi\",\nrespond with a friendly greeting and explain\nwhat topics you can help with.\n\nOtherwise, answer the user's question clearly\nwith examples in a student-friendly way.\n\nTopics:\nPython, EDA, SQL, Machine Learning,\nDeep Learning, GenAI, Career Guidance.\nl assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "793141f7-f3a0-4114-9dac-2ea069ad530b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        208
+      ],
+      "id": "9c73861c-67f3-4702-962f-97a91eae2f7b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "W2tQu7fsndoCBkwI",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "00bd83fc-2695-4641-8bc9-0ff5e23347bb",
+      "name": "Send a text message",
+      "webhookId": "cd0e57fc-f4ea-42bb-875f-db5e5ee64497",
+      "credentials": {
+        "telegramApi": {
+          "id": "EwAjMVvG1Hu6CANt",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        240
+      ],
+      "id": "33ac5f02-cc42-48a4-8e53-9dbb5d4a49c8",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2dd40d7f-5185-4acb-8b9a-741dd553988a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2387b43c76b75d1affd8da6cf759ac06bd1826edb1524b833e17ef9beeff984c"
+  },
+  "id": "DsrIVWJaHRuj2Con",
+  "tags": []
+}

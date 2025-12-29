@@ -1,0 +1,122 @@
+{
+  "name": "Web App/Game Generator using Streamlit & N8N",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-generator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "8d0084cf-3008-479b-9c37-b5c4324b679a",
+      "name": "Webhook",
+      "webhookId": "b2d43b53-c9c6-46a2-8999-2a4076d367f5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Type: {{ $json.body.type }}\nUser Request: {{ $json.body.prompt }}\n\nGenerate complete working Python code.\n",
+        "options": {
+          "systemMessage": "You are a helpful assistant\n\nYou are a professional Python developer.\n\nIf type == \"app\":\nGenerate a complete Streamlit app.\n\nIf type == \"game\":\nGenerate a complete pygame game.\n\nRules:\n- Output ONLY Python code\n- NO markdown\n- NO explanations\n- NO backticks\n- pygame code MUST include pygame.init() and game loop\n\nYou are a professional Python game developer.\n\nYou MUST follow these rules for EVERY game you generate:\n\nGENERAL GAME RULES:\n1. Use pygame\n2. Ask for player names before the game starts\n3. Display player names on screen at all times\n4. Maintain score variables for each player\n5. Update score when a player wins\n6. Allow replay without resetting scores\n7. Display turn information clearly\n\nUI / LAYOUT RULES:\n- Reserve top 100px for header (player names + scores)\n- Reserve bottom 80px for messages (turn, win, draw)\n- Game area must be centered\n- No text may overlap the game area\n\nTECHNICAL RULES:\n- Use pygame.init()\n- Use a proper game loop\n- Use clock.tick()\n- Clean reset on replay\n- Output ONLY Python code\n- NO markdown\n- NO explanations\n- NO backticks\n\nSTREAMLIT RULES:\n- Use st.rerun() instead of st.experimental_rerun()\n- Must be compatible with Streamlit >= 1.25\n\nSTREAMLIT APP RULES:\n- Use st.rerun() for reruns\n- Do NOT use st.experimental_rerun()\n- Code must run on latest Streamlit versions\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "a54c0668-0395-4125-96b4-a0891500e0cd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        176
+      ],
+      "id": "c69b6a5d-aa2d-4e05-9987-6fbbf9fba62f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tyTHDD6EVaH8vTZI",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"code\": $json.output } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        288,
+        0
+      ],
+      "id": "18b7f6a8-ec18-48ad-89f2-ce9d4f6b9b88",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f2a2feeb-28de-481e-bad0-3c7d6bb68b33",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2387b43c76b75d1affd8da6cf759ac06bd1826edb1524b833e17ef9beeff984c"
+  },
+  "id": "XE4QcsFYiMjXW5Dj",
+  "tags": []
+}

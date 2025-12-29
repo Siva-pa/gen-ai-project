@@ -1,0 +1,121 @@
+{
+  "name": "PPT Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bfeef820-0a2e-47c7-a74c-f41cde078ec9",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1056,
+        0
+      ],
+      "id": "d8af6bba-0688-4faa-854b-0a3dc3821508",
+      "name": "Webhook",
+      "webhookId": "bfeef820-0a2e-47c7-a74c-f41cde078ec9"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic: {{ $json.body.user_input }}\nGenerate exactly {{ $json.body.num_slides }} slides.\nFocus on practical {{ $json.body.user_input }} knowledge.\n",
+        "options": {
+          "systemMessage": "You are an expert  instructor.\n\nYour task is to generate clear, practical, and useful  presentation slides.\n\nSTRICT RULES:\n- Use ONLY real  concepts (no generic placeholders).\n- NEVER use filler text like:\n  \"Key concept related to the topic\"\n  \"Detailed aspect of the topic\"\n  \"Application where the topic is relevant\"\n- Every bullet point must contain REAL information.\n- Use simple, beginner-friendly explanations.\n- Generate EXACTLY the number of slides requested.\n- Do NOT add extra slides.\n- Do NOT add explanations outside JSON.\n- Do NOT use markdown.\n- Do NOT return empty strings.\n\nReturn ONLY valid JSON.\n\nJSON format:\n{\n  \"title\": \"<topic>\",\n  \"slides\": [\n    {\n      \"title\": \"<meaningful slide title>\",\n      \"content\": [\n        \"<real bullet point>\",\n        \"<real bullet point>\",\n        \"<real bullet point>\"\n      ]\n    }\n  ]\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -832,
+        0
+      ],
+      "id": "c689c853-03b3-4a89-b61a-c8b44fc91d48",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -832,
+        224
+      ],
+      "id": "bf66d406-e107-4943-8027-555653c045a0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tyTHDD6EVaH8vTZI",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -464,
+        0
+      ],
+      "id": "92a3c5b0-bb9c-4389-b87c-21935a049959",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "be277e0e-60ed-40b6-85aa-5627c2c31906",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2387b43c76b75d1affd8da6cf759ac06bd1826edb1524b833e17ef9beeff984c"
+  },
+  "id": "U4AbOrYqrPxm68Zh",
+  "tags": []
+}

@@ -1,0 +1,388 @@
+{
+  "name": "AI-Driven Assignment Evaluation and Scoring System",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Assignment Evaluation Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Student Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Student Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Subject",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Assignment Text",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -608,
+        0
+      ],
+      "id": "20fba9c4-c2cc-419f-8a23-c7ea8f00e065",
+      "name": "On form submission",
+      "webhookId": "cf6f7fcf-b20d-47c0-a5e0-0a3a5efd7708"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"student_name\": \"{{ $json['Student Name'] }}\",\n  \"student_email\": \"{{ $json['Student Email'] }}\",\n  \"subject\": \"{{ $json.Subject }}\",\n  \"assignment\": \"{{ $json['Assignment Text'] }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -432,
+        0
+      ],
+      "id": "50d2f54d-2bc3-4b80-b024-1d6a67a5748d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Evaluate the following student assignment.\n\nSubject: {{ $json.subject }}\n\nAssignment:\n{{ $json.assignment }}\n",
+        "options": {
+          "systemMessage": "You are a helpful assistant\nYou are an academic assignment evaluator.\n\nYour task:\n- Evaluate the student assignment objectively\n- Assign a score between 0 and 100\n- Assign a grade based on the score\n- Provide constructive feedback\n\nGrading rules:\nA = 90–100\nB = 75–89\nC = 60–74\nD = 40–59\nF = below 40\n\nReturn STRICT JSON ONLY.\nDo not include explanations outside JSON.\n\nJSON format:\n{\n  \"total_score\": number,\n  \"grade\": \"A/B/C/D/F\",\n  \"feedback\": \"Detailed academic feedback\"\n}\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "1a3eaad0-ac1f-4cf7-81f6-35f945033b0c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        192
+      ],
+      "id": "c15b0be7-7578-4dbf-b998-a3bd621c0e17",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "W2tQu7fsndoCBkwI",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of items) {\n  // ✅ FIX: read from `output`, not `text`\n  const rawText = item.json.output;\n\n  if (!rawText || typeof rawText !== 'string') {\n    throw new Error(\"AI Agent output is empty or not a string\");\n  }\n\n  // Extract JSON object from text\n  const jsonMatch = rawText.match(/\\{[\\s\\S]*\\}/);\n\n  if (!jsonMatch) {\n    throw new Error(\n      \"No JSON object found in AI Agent output:\\n\" + rawText\n    );\n  }\n\n  let parsed;\n  try {\n    parsed = JSON.parse(jsonMatch[0]);\n  } catch (err) {\n    throw new Error(\n      \"Failed to parse JSON:\\n\" + jsonMatch[0]\n    );\n  }\n\n  results.push({\n    json: {\n      ...item.json,\n      total_score: parsed.total_score,\n      grade: parsed.grade,\n      feedback: parsed.feedback\n    }\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "205ae31f-8351-4fc5-b5ed-5b3c77109686",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jUPwsckWWqqJnqqFq8Yyh39SoeHN5EZwgNPPkD07afc",
+          "mode": "list",
+          "cachedResultName": "AI Assignment Evaluation Results",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jUPwsckWWqqJnqqFq8Yyh39SoeHN5EZwgNPPkD07afc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jUPwsckWWqqJnqqFq8Yyh39SoeHN5EZwgNPPkD07afc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Student Name": "={{ $('On form submission').item.json['Student Name'] }}",
+            "Student Email": "={{ $('On form submission').item.json['Student Email'] }}",
+            "Subject": "={{ $('On form submission').item.json.Subject }}",
+            "Score": "={{ $json.total_score }}",
+            "Grade": "={{ $json.grade }}",
+            "Feedback": "={{ $json.feedback }}",
+            "Timestamp": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Student Name",
+              "displayName": "Student Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Student Email",
+              "displayName": "Student Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Grade",
+              "displayName": "Grade",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Feedback",
+              "displayName": "Feedback",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        528,
+        0
+      ],
+      "id": "02caf894-8268-4dd3-b38f-65e748ff7817",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FtO1pT1gu4ankO9s",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e5e8c649-42f9-49cb-bf83-dcd60f3ff744",
+              "leftValue": "={{ $json.assignment.length }}",
+              "rightValue": 20,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "e63497de-1cdc-4c88-abf2-4b4ab565c956",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (const item of items) {\n  item.json.assignmentError = \"Assignment is too short. Please submit a detailed answer for evaluation.\";\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        208
+      ],
+      "id": "cb5625b4-9994-4673-b0f7-429a6e498a2a",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Student Email'] }}",
+        "subject": "=Assignment Evaluation Result – {{ $json.Subject }}",
+        "emailType": "text",
+        "message": "=Hello {{ $json['Student Name'] }},\n\nYour assignment has been evaluated.\n\nSubject: {{ $json.Subject }}\nScore: {{ $json.Score }}/100\nGrade: {{ $json.Grade }}\n\nFeedback:\n{{ $json.Feedback }}\n\nRegards,\nAI Assignment Evaluation System\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        0
+      ],
+      "id": "c83f2ac3-73c7-48e0-9a7a-e9b765d1647c",
+      "name": "Send a message",
+      "webhookId": "837b363a-af3a-4e96-8655-268d14c0b637",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BPuDtk1jOxXv5Aaf",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "90fa6ecd-30e2-4f09-9bd2-4f2ab5eb87a4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2387b43c76b75d1affd8da6cf759ac06bd1826edb1524b833e17ef9beeff984c"
+  },
+  "id": "qVJlsOA3encZLWHd",
+  "tags": []
+}
