@@ -1,12 +1,20 @@
-# Web AppGame Generator
+# 🎮 Web App & Game Generator
 
+A Generative AI tool that creates simple web apps and games dynamically.
 
+## 🚀 Features
+- App/Game generation via prompt
+- Streamlit-based UI
+- Player name input
+- Score tracking
+- Clean UI without code exposure
 
-\# 🎮 Web AppGame Generator using Streamlit \& N8N
+## 🛠️ Tech Stack
+- Streamlit
+- n8n
+- Python
+- AI Agent
 
-
-
-This project generates simple web apps and games dynamically using AI.
-
-
-
+## ▶️ How to Run
+```bash
+streamlit run app.py
