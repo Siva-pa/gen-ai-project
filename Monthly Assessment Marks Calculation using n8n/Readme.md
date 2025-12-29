@@ -1,9 +1,4 @@
 
----
-
-# 📁 5️⃣ Monthly Assessment Marks Calculation using n8n
-
-```md
 # 📊 Monthly Assessment Marks Calculator
 
 An automation workflow to calculate monthly assessment scores and determine placement eligibility.
